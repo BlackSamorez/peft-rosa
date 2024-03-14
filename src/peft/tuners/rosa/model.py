@@ -38,6 +38,7 @@ from peft.utils import (
     get_quantization_config,
 )
 
+from .aqlm import dispatch_aqlm
 from .config import RosaConfig
 from .layer import RosaLayer, dispatch_default
 
@@ -167,6 +168,10 @@ class RosaModel(BaseTuner):
             assert False, "RoSA does not support GPTQ quantization"
             # kwargs["gptq_quantization_config"] = quantization_config
 
+        quantization_config = get_quantization_config(self.model, method="aqlm")
+        if quantization_config is not None:
+            kwargs["aqlm_quantization_config"] = quantization_config
+
         if isinstance(target, RosaLayer):
             target.update_layer(
                 adapter_name,
@@ -251,7 +256,7 @@ class RosaModel(BaseTuner):
 
             dispatchers.append(dispatch_bnb_4bit)
 
-        dispatchers.extend([dispatch_default])
+        dispatchers.extend([dispatch_aqlm, dispatch_default])
 
         new_module = None
         for dispatcher in dispatchers:

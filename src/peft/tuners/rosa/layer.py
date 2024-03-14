@@ -76,6 +76,9 @@ class RosaLayer(BaseTunerLayer):
         elif hasattr(base_layer, "input_size") and hasattr(base_layer, "output_size"):
             # Megatron ColumnParallelLinear,RowParallelLinear
             in_features, out_features = base_layer.input_size, base_layer.output_size
+        elif hasattr(base_layer, "codebooks") and base_layer.__class__.__name__ == "QuantizedLinear":
+            # AQLM QuantLinear
+            in_features, out_features = base_layer.in_features, base_layer.out_features
         else:
             raise ValueError(f"Unsupported layer type {type(base_layer)}")
 
@@ -146,7 +149,7 @@ class RosaLayer(BaseTunerLayer):
         weight_shape = self._get_weight_shape()
         
         # check weight and qweight (for GPTQ)
-        for weight_name in ("weight", "qweight"):
+        for weight_name in ("weight", "qweight", "codebooks"):
             weight = getattr(self.get_base_layer(), weight_name, None)
             if weight is not None:
                 # the layer is already completely initialized, this is an update
