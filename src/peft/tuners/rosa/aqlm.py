@@ -63,7 +63,7 @@ class AqlmLoraLinear(torch.nn.Module, RosaLayer):
                 x = self._add_dummy(x)
 
             
-            result = self.base_layer(x, *args, **kwargs)
+            result = self.base_layer(x.clone(), *args, **kwargs)
             
             if self.r[active_adapter] > 0:
                 rosa_A = self.rosa_A[active_adapter]
